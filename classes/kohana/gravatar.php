@@ -111,18 +111,6 @@ class Kohana_Gravatar {
 	}
 
 	/**
-	 * Handles this object being cast to string
-	 *
-	 * @return  string       the resulting Gravatar
-	 * @access  public
-	 * @author  Sam Clark
-	 */
-	public function __toString()
-	{
-		return (string) $this->render();
-	}
-
-	/**
 	 * Accessor method for setting size of gravatar
 	 *
 	 * @param   int          size  the size of the gravatar image in pixels
@@ -176,6 +164,7 @@ class Kohana_Gravatar {
 	 *
 	 * @param   string       url  the url of the image to use instead of the Gravatar
 	 * @return  self
+	 * @throws  Kohana_Gravatar_Exception
 	 */
 	public function default_image($url = NULL)
 	{
@@ -191,7 +180,7 @@ class Kohana_Gravatar {
 			}
 			else
 			{
-				throw new Gravatar('The url : :url is improperly formatted', array(':url' => $url));
+				throw new Kohana_Gravatar_Exception('The url : :url is improperly formatted', array(':url' => $url));
 			}
 		}
 
@@ -213,7 +202,10 @@ class Kohana_Gravatar {
 			$this->email = $email;
 		}
 
-		$data = array('attr' => array(), 'src' => $this->_generate_url());
+		$data = array(
+			'attr' => array(),
+			'src' => $this->_generate_url()
+		);
 
 		if ($this->attributes)
 		{
@@ -222,14 +214,33 @@ class Kohana_Gravatar {
 
 		$data['attr']['alt'] = $this->_process_alt();
 
-		if ( ! $view)
+		if ($this->_config['render'])
 		{
-			return new View($this->_config['view'], $data);
+			if ( ! $view)
+			{
+				return new View($this->_config['view'], $data);
+			}
+			else
+			{
+				return new View($view, $data);
+			}
 		}
 		else
 		{
-			return new View($view, $data);
+			return (string) $this->_generate_url();
 		}
+	}
+
+	/**
+	 * Handles this object being cast to string
+	 *
+	 * @return  string       the resulting Gravatar
+	 * @access  public
+	 * @author  Sam Clark
+	 */
+	public function __toString()
+	{
+		return (string) $this->render();
 	}
 
 	/**
@@ -267,16 +278,18 @@ class Kohana_Gravatar {
 	 */
 	protected function _generate_url()
 	{
-		$string = $this->_config['service'].
-			'?gravatar_id='.md5($this->email).
-			'&s='.$this->_config['size'].
-			'&r='.$this->_config['rating'];
+		$url = $this->_config['service'];
+		$data = array(
+			'gravatar_id'	=> md5($this->email),
+			's'				=> $this->_config['size'],
+			'r'				=> $this->_config['rating'],
+		);
 
 		if ( ! empty($this->_config['default']))
 		{
-			$string .= '&d='.$this->_config['default'];
+			$data['d'] = $this->_config['default'];
 		}
 		
-		return $string;
+		return $url.'?'.http_build_query($data, '&');
 	}
 }
