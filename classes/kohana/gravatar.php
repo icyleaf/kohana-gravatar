@@ -174,7 +174,7 @@ class Kohana_Gravatar {
 		}
 		else
 		{
-			if (validate::url($url))
+			if (Valid::url($url))
 			{
 				$this->_config['default'] = $url;
 			}

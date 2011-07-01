@@ -178,7 +178,7 @@ class Kohana_Gravatar_Xmlrpc {
 	public function save_url($url, $rating = NULL)
 	{
 		// If the URL supplied is not valid
-		if ( ! Validate::url($url))
+		if ( ! Valid::url($url))
 		{
 			// Throw an exception
 			throw new Kohana_Gravatar_Xmlrpc_Exception(__METHOD__.' invalid URL supplied : :url', array(':url' => $url));
